@@ -20,7 +20,8 @@ import { __ } from '@wordpress/i18n';
 import { store as preferencesStore } from '@wordpress/preferences';
 import { moreVertical } from '@wordpress/icons';
 import { store as coreStore } from '@wordpress/core-data';
-import { useEffect } from '@wordpress/element';
+import { useEffect, Fragment } from '@wordpress/element';
+import { usePrevious } from '@wordpress/compose';
 
 /**
  * Internal dependencies
@@ -276,120 +277,158 @@ function GlobalStylesEditorCanvasContainerLink() {
 	}, [ editorCanvasContainerView, isRevisionsOpen, goTo ] );
 }
 
-function GlobalStylesUI() {
+function NavigationSync( { path: parentPath, onPathChange, children } ) {
+	const navigator = useNavigator();
+	const { path: childPath } = navigator.location;
+	const previousParentPath = usePrevious( parentPath );
+	const previousChildPath = usePrevious( childPath );
+	useEffect( () => {
+		console.log({
+			parentPath,
+			previousChildPath,
+			previousParentPath,
+			childPath,
+		});
+		if ( parentPath !== childPath ) {
+			if ( parentPath !== previousParentPath ) {
+				navigator.goTo( parentPath );
+			} else if (
+				childPath !== previousChildPath &&
+				parentPath !== childPath
+			) {
+				onPathChange( childPath );
+			}
+		}
+	}, [
+		onPathChange,
+		parentPath,
+		previousChildPath,
+		previousParentPath,
+		childPath,
+		navigator,
+	] );
+	return children;
+}
+
+function GlobalStylesUI( { path, onPathChange } ) {
 	const blocks = getBlockTypes();
 	const editorCanvasContainerView = useSelect(
 		( select ) =>
 			unlock( select( editSiteStore ) ).getEditorCanvasContainerView(),
 		[]
 	);
+	const WrapperComponent = path && onPathChange ? NavigationSync : Fragment;
 	return (
 		<NavigatorProvider
 			className="edit-site-global-styles-sidebar__navigator-provider"
 			initialPath="/"
 		>
-			<GlobalStylesNavigationScreen path="/">
-				<ScreenRoot />
-			</GlobalStylesNavigationScreen>
-
-			<GlobalStylesNavigationScreen path="/variations">
-				<ScreenStyleVariations />
-			</GlobalStylesNavigationScreen>
-
-			<GlobalStylesNavigationScreen path="/blocks">
-				<ScreenBlockList />
-			</GlobalStylesNavigationScreen>
-
-			<GlobalStylesNavigationScreen path="/typography">
-				<ScreenTypography />
-			</GlobalStylesNavigationScreen>
-
-			<GlobalStylesNavigationScreen path="/typography/font-sizes/">
-				<FontSizes />
-			</GlobalStylesNavigationScreen>
-
-			<GlobalStylesNavigationScreen path="/typography/font-sizes/:origin/:slug">
-				<FontSize />
-			</GlobalStylesNavigationScreen>
-
-			<GlobalStylesNavigationScreen path="/typography/typeset">
-				<ScreenTypeset />
-			</GlobalStylesNavigationScreen>
-
-			<GlobalStylesNavigationScreen path="/typography/text">
-				<ScreenTypographyElement element="text" />
-			</GlobalStylesNavigationScreen>
-
-			<GlobalStylesNavigationScreen path="/typography/link">
-				<ScreenTypographyElement element="link" />
-			</GlobalStylesNavigationScreen>
-
-			<GlobalStylesNavigationScreen path="/typography/heading">
-				<ScreenTypographyElement element="heading" />
-			</GlobalStylesNavigationScreen>
-
-			<GlobalStylesNavigationScreen path="/typography/caption">
-				<ScreenTypographyElement element="caption" />
-			</GlobalStylesNavigationScreen>
-
-			<GlobalStylesNavigationScreen path="/typography/button">
-				<ScreenTypographyElement element="button" />
-			</GlobalStylesNavigationScreen>
-
-			<GlobalStylesNavigationScreen path="/colors">
-				<ScreenColors />
-			</GlobalStylesNavigationScreen>
-
-			<GlobalStylesNavigationScreen path="/shadows">
-				<ScreenShadows />
-			</GlobalStylesNavigationScreen>
-
-			<GlobalStylesNavigationScreen path="/shadows/edit/:category/:slug">
-				<ScreenShadowsEdit />
-			</GlobalStylesNavigationScreen>
-
-			<GlobalStylesNavigationScreen path="/layout">
-				<ScreenLayout />
-			</GlobalStylesNavigationScreen>
-
-			<GlobalStylesNavigationScreen path="/css">
-				<ScreenCSS />
-			</GlobalStylesNavigationScreen>
-
-			<GlobalStylesNavigationScreen path="/revisions">
-				<ScreenRevisions />
-			</GlobalStylesNavigationScreen>
-
-			<GlobalStylesNavigationScreen path="/background">
-				<ScreenBackground />
-			</GlobalStylesNavigationScreen>
-
-			{ blocks.map( ( block ) => (
-				<GlobalStylesNavigationScreen
-					key={ 'menu-block-' + block.name }
-					path={ '/blocks/' + encodeURIComponent( block.name ) }
-				>
-					<ScreenBlock name={ block.name } />
+			<WrapperComponent path={ path } onPathChange={ onPathChange }>
+				<GlobalStylesNavigationScreen path="/">
+					<ScreenRoot />
 				</GlobalStylesNavigationScreen>
-			) ) }
 
-			<ContextScreens />
+				<GlobalStylesNavigationScreen path="/variations">
+					<ScreenStyleVariations />
+				</GlobalStylesNavigationScreen>
 
-			{ blocks.map( ( block ) => (
-				<ContextScreens
-					key={ 'screens-block-' + block.name }
-					name={ block.name }
-					parentMenu={ '/blocks/' + encodeURIComponent( block.name ) }
-				/>
-			) ) }
+				<GlobalStylesNavigationScreen path="/blocks">
+					<ScreenBlockList />
+				</GlobalStylesNavigationScreen>
 
-			{ 'style-book' === editorCanvasContainerView && (
-				<GlobalStylesStyleBook />
-			) }
+				<GlobalStylesNavigationScreen path="/typography">
+					<ScreenTypography />
+				</GlobalStylesNavigationScreen>
 
-			<GlobalStylesActionMenu />
-			<GlobalStylesBlockLink />
-			<GlobalStylesEditorCanvasContainerLink />
+				<GlobalStylesNavigationScreen path="/typography/font-sizes/">
+					<FontSizes />
+				</GlobalStylesNavigationScreen>
+
+				<GlobalStylesNavigationScreen path="/typography/font-sizes/:origin/:slug">
+					<FontSize />
+				</GlobalStylesNavigationScreen>
+
+				<GlobalStylesNavigationScreen path="/typography/typeset">
+					<ScreenTypeset />
+				</GlobalStylesNavigationScreen>
+
+				<GlobalStylesNavigationScreen path="/typography/text">
+					<ScreenTypographyElement element="text" />
+				</GlobalStylesNavigationScreen>
+
+				<GlobalStylesNavigationScreen path="/typography/link">
+					<ScreenTypographyElement element="link" />
+				</GlobalStylesNavigationScreen>
+
+				<GlobalStylesNavigationScreen path="/typography/heading">
+					<ScreenTypographyElement element="heading" />
+				</GlobalStylesNavigationScreen>
+
+				<GlobalStylesNavigationScreen path="/typography/caption">
+					<ScreenTypographyElement element="caption" />
+				</GlobalStylesNavigationScreen>
+
+				<GlobalStylesNavigationScreen path="/typography/button">
+					<ScreenTypographyElement element="button" />
+				</GlobalStylesNavigationScreen>
+
+				<GlobalStylesNavigationScreen path="/colors">
+					<ScreenColors />
+				</GlobalStylesNavigationScreen>
+
+				<GlobalStylesNavigationScreen path="/shadows">
+					<ScreenShadows />
+				</GlobalStylesNavigationScreen>
+
+				<GlobalStylesNavigationScreen path="/shadows/edit/:category/:slug">
+					<ScreenShadowsEdit />
+				</GlobalStylesNavigationScreen>
+
+				<GlobalStylesNavigationScreen path="/layout">
+					<ScreenLayout />
+				</GlobalStylesNavigationScreen>
+
+				<GlobalStylesNavigationScreen path="/css">
+					<ScreenCSS />
+				</GlobalStylesNavigationScreen>
+
+				<GlobalStylesNavigationScreen path="/revisions">
+					<ScreenRevisions />
+				</GlobalStylesNavigationScreen>
+
+				<GlobalStylesNavigationScreen path="/background">
+					<ScreenBackground />
+				</GlobalStylesNavigationScreen>
+
+				{ blocks.map( ( block ) => (
+					<GlobalStylesNavigationScreen
+						key={ 'menu-block-' + block.name }
+						path={ '/blocks/' + encodeURIComponent( block.name ) }
+					>
+						<ScreenBlock name={ block.name } />
+					</GlobalStylesNavigationScreen>
+				) ) }
+
+				<ContextScreens />
+
+				{ blocks.map( ( block ) => (
+					<ContextScreens
+						key={ 'screens-block-' + block.name }
+						name={ block.name }
+						parentMenu={
+							'/blocks/' + encodeURIComponent( block.name )
+						}
+					/>
+				) ) }
+
+				{ 'style-book' === editorCanvasContainerView && (
+					<GlobalStylesStyleBook />
+				) }
+
+				<GlobalStylesActionMenu />
+				<GlobalStylesBlockLink />
+				<GlobalStylesEditorCanvasContainerLink />
+			</WrapperComponent>
 		</NavigatorProvider>
 	);
 }

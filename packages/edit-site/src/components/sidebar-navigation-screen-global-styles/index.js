@@ -1,6 +1,7 @@
 /**
  * WordPress dependencies
  */
+import { privateApis as routerPrivateApis } from '@wordpress/router';
 import { __ } from '@wordpress/i18n';
 import { useSelect, useDispatch } from '@wordpress/data';
 import { store as coreStore } from '@wordpress/core-data';
@@ -21,6 +22,8 @@ import useGlobalStylesRevisions from '../global-styles/screen-revisions/use-glob
 import SidebarNavigationScreenDetailsFooter from '../sidebar-navigation-screen-details-footer';
 import { MainSidebarNavigationContent } from '../sidebar-navigation-screen-main';
 import SidebarButton from '../sidebar-button';
+
+const { useHistory } = unlock( routerPrivateApis );
 
 export function SidebarNavigationItemGlobalStyles( props ) {
 	const { openGeneralSidebar } = useDispatch( editSiteStore );
@@ -56,6 +59,7 @@ export function SidebarNavigationItemGlobalStyles( props ) {
 }
 
 export default function SidebarNavigationScreenGlobalStyles( { backPath } ) {
+	const history = useHistory();
 	const { revisions, isLoading: isLoadingRevisions } =
 		useGlobalStylesRevisions();
 	const { openGeneralSidebar } = useDispatch( editSiteStore );
@@ -148,6 +152,13 @@ export default function SidebarNavigationScreenGlobalStyles( { backPath } ) {
 					isSelected={ () => false }
 					showCloseButton={ false }
 					showTabs={ false }
+					onSelect={ ( blockName ) => {
+						history.push( {
+							path: `/wp_global_styles/blocks/${ encodeURIComponent(
+								blockName
+							) }`,
+						} );
+					} }
 				/>
 			) }
 		</>

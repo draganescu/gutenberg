@@ -3,7 +3,7 @@
  */
 import { privateApis as routerPrivateApis } from '@wordpress/router';
 import { __ } from '@wordpress/i18n';
-import { useEffect } from '@wordpress/element';
+import { useEffect, useMemo } from '@wordpress/element';
 /**
  * Internal dependencies
  */
@@ -73,6 +73,31 @@ function useRedirectOldPaths() {
 			} );
 		}
 	}, [ history, params ] );
+}
+
+const GLOBAL_STYLES_PATH_PREFIX = '/wp_global_styles';
+
+function GlobalStylesUIWrapper() {
+	const { params } = useLocation();
+	const history = useHistory();
+	const pathWithPrefix = params.path;
+	const [ path, onPathChange ] = useMemo( () => {
+		const processedPath = pathWithPrefix.substring(
+			GLOBAL_STYLES_PATH_PREFIX.length
+		);
+		return [
+			processedPath ? processedPath : '/',
+			( newPath ) => {
+				history.push( {
+					path:
+						! newPath || newPath === '/'
+							? GLOBAL_STYLES_PATH_PREFIX
+							: `${ GLOBAL_STYLES_PATH_PREFIX }${ newPath }`,
+				} );
+			},
+		];
+	}, [ pathWithPrefix, history ] );
+	return <GlobalStylesUI path={ path } onPathChange={ onPathChange } />;
 }
 
 export default function useLayoutAreas() {
@@ -150,7 +175,7 @@ export default function useLayoutAreas() {
 	}
 
 	// Styles
-	if ( path === '/wp_global_styles' ) {
+	if ( path && path.startsWith( '/wp_global_styles' ) ) {
 		return {
 			key: 'styles',
 			areas: {
@@ -159,7 +184,7 @@ export default function useLayoutAreas() {
 				),
 				content: (
 					<Page className="edit-site-styes" title={ __( 'Styles' ) }>
-						<GlobalStylesUI />
+						<GlobalStylesUIWrapper />
 					</Page>
 				),
 				preview: <Editor isPreviewOnly />,
@@ -167,7 +192,7 @@ export default function useLayoutAreas() {
 					<Editor isPreviewOnly />
 				) : (
 					<Page className="edit-site-styes" title={ __( 'Styles' ) }>
-						<GlobalStylesUI />
+						<GlobalStylesUIWrapper />
 					</Page>
 				),
 			},
