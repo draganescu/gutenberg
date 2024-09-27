@@ -152,7 +152,7 @@ export default function useLayoutAreas() {
 	// Styles
 	if ( path && path.startsWith( '/wp_global_styles' ) ) {
 		return {
-			key: 'styles',
+			key: 'default',
 			areas: {
 				sidebar: (
 					<SidebarNavigationScreenGlobalStyles backPath={ {} } />
@@ -167,6 +167,7 @@ export default function useLayoutAreas() {
 			},
 			widths: {
 				content: 380,
+				hasResize: false,
 			},
 		};
 	}

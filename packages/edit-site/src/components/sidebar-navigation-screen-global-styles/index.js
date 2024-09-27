@@ -23,12 +23,10 @@ import SidebarNavigationScreenDetailsFooter from '../sidebar-navigation-screen-d
 import { MainSidebarNavigationContent } from '../sidebar-navigation-screen-main';
 import SidebarButton from '../sidebar-button';
 
-const { useHistory } = unlock( routerPrivateApis );
+const { useLocation } = unlock( routerPrivateApis );
 
 export function SidebarNavigationItemGlobalStyles( props ) {
-	const { openGeneralSidebar } = useDispatch( editSiteStore );
-	const { setCanvasMode } = unlock( useDispatch( editSiteStore ) );
-
+	const { params } = useLocation();
 	const hasGlobalStyleVariations = useSelect(
 		( select ) =>
 			!! select(
@@ -42,24 +40,16 @@ export function SidebarNavigationItemGlobalStyles( props ) {
 				{ ...props }
 				params={ { path: '/wp_global_styles' } }
 				uid="global-styles-navigation-item"
+				aria-current={
+					params.path && params.path.startsWith( '/wp_global_styles' )
+				}
 			/>
 		);
 	}
-	return (
-		<SidebarNavigationItem
-			{ ...props }
-			onClick={ () => {
-				// Switch to edit mode.
-				setCanvasMode( 'edit' );
-				// Open global styles sidebar.
-				openGeneralSidebar( 'edit-site/global-styles' );
-			} }
-		/>
-	);
+	return <SidebarNavigationItem { ...props } />;
 }
 
-export default function SidebarNavigationScreenGlobalStyles( { backPath } ) {
-	const history = useHistory();
+export default function SidebarNavigationScreenGlobalStyles() {
 	const { revisions, isLoading: isLoadingRevisions } =
 		useGlobalStylesRevisions();
 	const { openGeneralSidebar } = useDispatch( editSiteStore );
@@ -106,15 +96,14 @@ export default function SidebarNavigationScreenGlobalStyles( { backPath } ) {
 	const modifiedDateTime = revisions?.[ 0 ]?.modified;
 	const shouldShowGlobalStylesFooter =
 		hasRevisions && ! isLoadingRevisions && modifiedDateTime;
-
 	return (
 		<>
 			<SidebarNavigationScreen
-				title={ __( 'Styles' ) }
+				title={ __( 'Design' ) }
+				isRoot
 				description={ __(
-					'Change the look and feel of your web site.'
+					'Customize the appearance of your website using the block editor.'
 				) }
-				backPath={ backPath }
 				content={
 					<MainSidebarNavigationContent activeItem="styles-navigation-item" />
 				}
@@ -152,13 +141,7 @@ export default function SidebarNavigationScreenGlobalStyles( { backPath } ) {
 					isSelected={ () => false }
 					showCloseButton={ false }
 					showTabs={ false }
-					onSelect={ ( blockName ) => {
-						history.push( {
-							path: `/wp_global_styles/blocks/${ encodeURIComponent(
-								blockName
-							) }`,
-						} );
-					} }
+					onClick={ () => {} }
 				/>
 			) }
 		</>
