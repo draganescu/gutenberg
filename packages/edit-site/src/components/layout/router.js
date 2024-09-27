@@ -3,7 +3,7 @@
  */
 import { privateApis as routerPrivateApis } from '@wordpress/router';
 import { __ } from '@wordpress/i18n';
-import { useEffect, useMemo } from '@wordpress/element';
+import { useEffect } from '@wordpress/element';
 /**
  * Internal dependencies
  */
@@ -20,6 +20,8 @@ import SidebarNavigationScreenTemplatesBrowse from '../sidebar-navigation-screen
 import SidebarNavigationScreenPatterns from '../sidebar-navigation-screen-patterns';
 import SidebarNavigationScreenNavigationMenu from '../sidebar-navigation-screen-navigation-menu';
 import DataViewsSidebarContent from '../sidebar-dataviews';
+import GlobalStylesUIWrapper from '../sidebar-global-styles-wrapper';
+
 import {
 	NAVIGATION_POST_TYPE,
 	PATTERN_TYPES,
@@ -27,8 +29,6 @@ import {
 	TEMPLATE_POST_TYPE,
 } from '../../utils/constants';
 import { PostEdit } from '../post-edit';
-import GlobalStylesUI from '../global-styles/ui';
-import Page from '../page';
 
 const { useLocation, useHistory } = unlock( routerPrivateApis );
 
@@ -73,31 +73,6 @@ function useRedirectOldPaths() {
 			} );
 		}
 	}, [ history, params ] );
-}
-
-const GLOBAL_STYLES_PATH_PREFIX = '/wp_global_styles';
-
-function GlobalStylesUIWrapper() {
-	const { params } = useLocation();
-	const history = useHistory();
-	const pathWithPrefix = params.path;
-	const [ path, onPathChange ] = useMemo( () => {
-		const processedPath = pathWithPrefix.substring(
-			GLOBAL_STYLES_PATH_PREFIX.length
-		);
-		return [
-			processedPath ? processedPath : '/',
-			( newPath ) => {
-				history.push( {
-					path:
-						! newPath || newPath === '/'
-							? GLOBAL_STYLES_PATH_PREFIX
-							: `${ GLOBAL_STYLES_PATH_PREFIX }${ newPath }`,
-				} );
-			},
-		];
-	}, [ pathWithPrefix, history ] );
-	return <GlobalStylesUI path={ path } onPathChange={ onPathChange } />;
 }
 
 export default function useLayoutAreas() {
@@ -182,18 +157,12 @@ export default function useLayoutAreas() {
 				sidebar: (
 					<SidebarNavigationScreenGlobalStyles backPath={ {} } />
 				),
-				content: (
-					<Page className="edit-site-styes" title={ __( 'Styles' ) }>
-						<GlobalStylesUIWrapper />
-					</Page>
-				),
+				content: <GlobalStylesUIWrapper />,
 				preview: <Editor isPreviewOnly />,
 				mobile: hasEditCanvasMode ? (
 					<Editor isPreviewOnly />
 				) : (
-					<Page className="edit-site-styes" title={ __( 'Styles' ) }>
-						<GlobalStylesUIWrapper />
-					</Page>
+					<GlobalStylesUIWrapper />
 				),
 			},
 			widths: {
