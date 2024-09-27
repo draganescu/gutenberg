@@ -4,8 +4,10 @@
 import { __ } from '@wordpress/i18n';
 import { useSelect, useDispatch } from '@wordpress/data';
 import { store as coreStore } from '@wordpress/core-data';
-import { useCallback } from '@wordpress/element';
+import { useViewportMatch } from '@wordpress/compose';
+import { useCallback, useState } from '@wordpress/element';
 import { store as preferencesStore } from '@wordpress/preferences';
+import { layout, seen } from '@wordpress/icons';
 
 /**
  * Internal dependencies
@@ -18,6 +20,7 @@ import StyleBook from '../style-book';
 import useGlobalStylesRevisions from '../global-styles/screen-revisions/use-global-styles-revisions';
 import SidebarNavigationScreenDetailsFooter from '../sidebar-navigation-screen-details-footer';
 import { MainSidebarNavigationContent } from '../sidebar-navigation-screen-main';
+import SidebarButton from '../sidebar-button';
 
 export function SidebarNavigationItemGlobalStyles( props ) {
 	const { openGeneralSidebar } = useDispatch( editSiteStore );
@@ -56,6 +59,8 @@ export default function SidebarNavigationScreenGlobalStyles( { backPath } ) {
 	const { revisions, isLoading: isLoadingRevisions } =
 		useGlobalStylesRevisions();
 	const { openGeneralSidebar } = useDispatch( editSiteStore );
+	const [ isViewingStyleBook, setIsViewingStyleBook ] = useState( true );
+	const isMobileViewport = useViewportMatch( 'medium', '<' );
 	const { setCanvasMode, setEditorCanvasContainerView } = unlock(
 		useDispatch( editSiteStore )
 	);
@@ -103,11 +108,30 @@ export default function SidebarNavigationScreenGlobalStyles( { backPath } ) {
 			<SidebarNavigationScreen
 				title={ __( 'Styles' ) }
 				description={ __(
-					'Choose a different style combination for the theme styles.'
+					'Change the look and feel of your web site.'
 				) }
 				backPath={ backPath }
 				content={
 					<MainSidebarNavigationContent activeItem="styles-navigation-item" />
+				}
+				actions={
+					<>
+						{ ! isMobileViewport && (
+							<SidebarButton
+								icon={ isViewingStyleBook ? layout : seen }
+								label={
+									isViewingStyleBook
+										? __( 'See homepage' )
+										: __( 'See style Book' )
+								}
+								onClick={ () =>
+									setIsViewingStyleBook(
+										! isViewingStyleBook
+									)
+								}
+							/>
+						) }
+					</>
 				}
 				footer={
 					shouldShowGlobalStylesFooter && (
@@ -118,7 +142,7 @@ export default function SidebarNavigationScreenGlobalStyles( { backPath } ) {
 					)
 				}
 			/>
-			{ isViewMode && (
+			{ isViewMode && isViewingStyleBook && (
 				<StyleBook
 					enableResizing={ false }
 					isSelected={ () => false }

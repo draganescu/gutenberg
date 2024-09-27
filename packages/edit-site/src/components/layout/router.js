@@ -162,9 +162,9 @@ export default function useLayoutAreas() {
 						<GlobalStylesUI />
 					</Page>
 				),
-				preview: <Editor />,
+				preview: <Editor isPreviewOnly />,
 				mobile: hasEditCanvasMode ? (
-					<Editor />
+					<Editor isPreviewOnly />
 				) : (
 					<Page className="edit-site-styes" title={ __( 'Styles' ) }>
 						<GlobalStylesUI />
